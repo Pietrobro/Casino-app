@@ -1,0 +1,81 @@
+import tkinter as tk
+from tkinter import messagebox
+import random
+
+class CasinoApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Casinò Virtuale 🎰")
+        self.balance = 1000  # saldo iniziale
+
+        self.main_frame = tk.Frame(self.root)
+        self.main_frame.pack(padx=20, pady=20)
+
+        self.balance_label = tk.Label(self.main_frame, text=f"Saldo: {self.balance} CHF", font=("Arial", 16))
+        self.balance_label.pack(pady=10)
+
+        tk.Label(self.main_frame, text="Scegli un gioco:", font=("Arial", 14)).pack()
+
+        tk.Button(self.main_frame, text="🎰 Slot Machine", width=20, command=self.open_slot).pack(pady=5)
+        tk.Button(self.main_frame, text="🎯 Roulette (in arrivo)", width=20, state=tk.DISABLED).pack(pady=5)
+        tk.Button(self.main_frame, text="🃏 Blackjack (in arrivo)", width=20, state=tk.DISABLED).pack(pady=5)
+        tk.Button(self.main_frame, text="❌ Esci", width=20, command=self.root.quit).pack(pady=10)
+
+    def update_balance(self, amount):
+        self.balance += amount
+        self.balance_label.config(text=f"Saldo: {self.balance} CHF")
+
+    def open_slot(self):
+        SlotMachine(self)
+
+class SlotMachine:
+    def __init__(self, casino):
+        self.casino = casino
+        self.window = tk.Toplevel()
+        self.window.title("Slot Machine 🎰")
+
+        tk.Label(self.window, text="Puntata (CHF):", font=("Arial", 12)).pack(pady=5)
+        self.bet_entry = tk.Entry(self.window)
+        self.bet_entry.pack()
+
+        tk.Button(self.window, text="Gira!", command=self.spin).pack(pady=10)
+
+        self.result_label = tk.Label(self.window, text="", font=("Arial", 16))
+        self.result_label.pack(pady=10)
+
+    def spin(self):
+        try:
+            bet = int(self.bet_entry.get())
+        except ValueError:
+            messagebox.showerror("Errore", "Inserisci una puntata valida.")
+            return
+
+        if bet <= 0:
+            messagebox.showerror("Errore", "La puntata deve essere positiva.")
+            return
+        if bet > self.casino.balance:
+            messagebox.showerror("Errore", "Saldo insufficiente.")
+            return
+
+        symbols = ["🍒", "🍋", "🔔", "💎", "7️⃣"]
+        result = [random.choice(symbols) for _ in range(3)]
+
+        win = 0
+        if result.count(result[0]) == 3:
+            win = bet * 5
+            msg = "JACKPOT! 🔥"
+        elif result.count(result[0]) == 2 or result.count(result[1]) == 2:
+            win = bet * 2
+            msg = "Hai vinto qualcosa! 🎉"
+        else:
+            win = -bet
+            msg = "Ritenta!"
+
+        self.casino.update_balance(win)
+        self.result_label.config(text=" ".join(result) + f"\n{msg} ({'+' if win > 0 else ''}{win} CHF)")
+
+# Avvia il casinò
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CasinoApp(root)
+    root.mainloop()
